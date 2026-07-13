@@ -23,7 +23,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role_id'
+        'role_id',
     ];
 
     /**
@@ -65,4 +65,10 @@ class User extends Authenticatable
     {
         return $this->role_id == 2;
     }
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
 }

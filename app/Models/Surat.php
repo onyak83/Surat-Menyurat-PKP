@@ -15,7 +15,7 @@ class Surat extends Model
         'no_surat',
         'tgl_surat',
         'tgl_diterima',
-        'instansi',
+        'instansi_id',
         'perihal',
         'lampiran',
         'sifat_surat_id',
@@ -32,5 +32,10 @@ class Surat extends Model
     public function sifatSurat()
     {
         return $this->belongsTo(Sifatsurat::class, 'sifat_surat_id');
+    }
+
+    public function instansi()
+    {
+        return $this->belongsTo(Instansi::class, 'instansi_id');
     }
 }

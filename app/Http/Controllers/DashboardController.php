@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Instansi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +27,7 @@ class DashboardController extends Controller
         $suratMasukHariIni = Surat::where('jenis_surat', 'masuk')
         ->whereDate('created_at', Carbon::today())
         ->count();
-        return $suratMasukHariIni;
+        // return $suratMasukHariIni;
 
         $suratKeluarHariIni = Surat::where('jenis_surat', 'keluar')
         ->whereDate('created_at', Carbon::today())
@@ -110,8 +111,11 @@ class DashboardController extends Controller
     public function createSurat()
     {
         $sifatSurat = DB::table('sifatsurats')->get();
+        $instansi = Instansi::where('status', true)
+            ->orderBy('nama_instansi')
+            ->get();
 
-        return view('dashboard.surat.create', compact('sifatSurat'));
+        return view('dashboard.surat.create', compact('sifatSurat', 'instansi'));
     }
 
     public function storeSurat(Request $request)
@@ -123,7 +127,7 @@ class DashboardController extends Controller
         'no_surat'     => 'required|string|max:255',
         'tgl_surat'    => 'required|date',
         'tgl_diterima' => 'nullable|date',
-        'instansi'     => 'required|string|max:255',
+        'instansi_id'  => 'required|exists:instansis,id',
         'perihal'      => 'required|string|max:255',
         'lampiran'     => 'nullable|string|max:255',
         'file_surat'   => 'required|file|mimes:pdf|max:2048',
@@ -188,7 +192,7 @@ class DashboardController extends Controller
             'no_surat'     => $request->no_surat,
             'tgl_surat'    => $request->tgl_surat,
             'tgl_diterima' => $request->tgl_diterima,
-            'instansi'     => $request->instansi,
+            'instansi_id'  => $request->instansi_id,
             'perihal'      => $request->perihal,
             'lampiran'     => $request->lampiran,
             'file_surat'   => $folder . '/' . $fileSurat,
@@ -225,9 +229,12 @@ class DashboardController extends Controller
     public function editSurat(string $id)
     {
         $sifatSurat = DB::table('sifatsurats')->get();
+        $instansi = Instansi::where('status', true)
+            ->orderBy('nama_instansi')
+            ->get();
         $surat = Surat::findOrFail($id);
 
-        return view('dashboard.surat.edit', compact('surat', 'sifatSurat'));
+        return view('dashboard.surat.edit', compact('surat', 'sifatSurat', 'instansi'));
     }
 
     public function updateSurat(Request $request, string $id)
@@ -239,7 +246,7 @@ class DashboardController extends Controller
         'no_surat'     => 'required|string|max:255',
         'tgl_surat'    => 'required|date',
         'tgl_diterima' => 'nullable|date',
-        'instansi'     => 'required|string|max:255',
+        'instansi_id'  => 'required|exists:instansis,id',
         'perihal'      => 'required|string|max:255',
         'lampiran'     => 'nullable|string|max:255',
         'file_surat'   => 'nullable|file|mimes:pdf|max:2048',
@@ -263,11 +270,6 @@ class DashboardController extends Controller
             // Default gunakan file lama
             $pathFile = $surat->file_surat;
 
-            /*
-            |--------------------------------------------------------------------------
-            | Upload File Baru (Opsional)
-            |--------------------------------------------------------------------------
-            */
             if ($request->hasFile('file_surat')) {
                 $file = $request->file('file_surat');
 
@@ -300,12 +302,6 @@ class DashboardController extends Controller
                 }
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | Update Database
-            |--------------------------------------------------------------------------
-            */
-
             $surat->update([
             'jenis_surat'  => $request->jenis_surat,
             'no_agenda'    => $request->no_agenda,
@@ -313,7 +309,7 @@ class DashboardController extends Controller
             'no_surat'     => $request->no_surat,
             'tgl_surat'    => $request->tgl_surat,
             'tgl_diterima' => $request->tgl_diterima,
-            'instansi'     => $request->instansi,
+            'instansi_id'  => $request->instansi_id,
             'perihal'      => $request->perihal,
             'lampiran'     => $request->lampiran,
             'file_surat'   => $pathFile,

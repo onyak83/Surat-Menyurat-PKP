@@ -93,16 +93,23 @@
                  </li>
 
                  <li class="nav-item">
-                     <a data-bs-toggle="collapse" href="#base">
+                     <a href="{{ route('index.User') }}">
                          <i class="fas fa-users"></i>
                          <p>User</p>
                      </a>
                  </li>
 
                  <li class="nav-item">
-                     <a data-bs-toggle="collapse" href="#base">
-                         <i class="fas fa-users"></i>
+                     <a href="{{ route('index.SifatSurat') }}">
+                         <i class="far fa-envelope"></i>
                          <p>Sifat Surat</p>
+                     </a>
+                 </li>
+
+                 <li class="nav-item">
+                     <a data-bs-toggle="collapse" href="#base">
+                         <i class="fas fa-building"></i>
+                         <p>Instansi</p>
                      </a>
                  </li>
 

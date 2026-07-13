@@ -32,7 +32,7 @@
             <div class="card">
                 <div class="card-body">
                     <div class="row justify-content-center">
-                        <div class="col-lg-8 col-xl-7">
+                        <div class="col-lg-10 col-xl-10">
                             <div class="card">
                                 <form action="{{ route('store.Surat') }}" method="POST" enctype="multipart/form-data">
                                     @csrf
@@ -133,12 +133,25 @@
                                                         Pengirim / Tujuan <span class="text-danger">*</span>
                                                     </label>
 
-                                                    <input type="text" name="instansi" id="instansi"
-                                                        class="form-control"
-                                                        placeholder="Masukkan pengirim atau tujuan surat"
-                                                        value="{{ old('instansi', isset($surat) ? $surat->instansi : '') }}"
-                                                        required value="{{ old('instansi') }}">
-                                                    @error('instansi')
+                                                    <div class="input-group">
+                                                        <select name="instansi_id" id="instansi_id" class="form-select"
+                                                            required>
+                                                            <option value="">-- Pilih Instansi --</option>
+                                                            @foreach ($instansi as $item)
+                                                                <option value="{{ $item->id }}"
+                                                                    {{ old('instansi_id') == $item->id ? 'selected' : '' }}>
+                                                                    {{ $item->nama_instansi }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+
+                                                        <button type="button" class="btn btn-primary"
+                                                            data-bs-toggle="modal" data-bs-target="#modalInstansi">
+                                                            <i class="fa fa-plus"></i>
+                                                        </button>
+                                                    </div>
+
+                                                    @error('instansi_id')
                                                         <small class="text-danger">{{ $message }}</small>
                                                     @enderror
                                                 </div>
@@ -214,34 +227,21 @@
         $(document).ready(function() {
             function toggleJenisSurat() {
                 let jenis = $('#jenis_surat').val();
+
                 if (jenis === 'masuk') {
-                    // Tampilkan field khusus surat masuk
-                    $('#div_no_agenda').slideDown(200);
-                    $('#div_tgl_diterima').slideDown(200);
+                    $('#div_no_agenda').slideDown();
+                    $('#div_tgl_diterima').slideDown();
                     $('#no_agenda').prop('disabled', false);
                     $('#tgl_diterima').prop('disabled', false);
-                    // Ubah label
-                    $('#label_instansi').html('Pengirim <span class="text-danger">*</span>');
-                    // Ubah placeholder
-                    $('#instansi').attr('placeholder', 'Masukkan nama pengirim');
-
+                    $('#label_instansi').html('Instansi Asal <span class="text-danger">*</span>');
                 } else if (jenis === 'keluar') {
-                    // Sembunyikan field khusus surat masuk
-                    $('#div_no_agenda').slideUp(200);
-                    $('#div_tgl_diterima').slideUp(200);
+                    $('#div_no_agenda').slideUp();
+                    $('#div_tgl_diterima').slideUp();
                     $('#no_agenda').prop('disabled', true).val('');
                     $('#tgl_diterima').prop('disabled', true).val('');
-                    // Ubah label
-                    $('#label_instansi').html('Tujuan <span class="text-danger">*</span>');
-                    // Ubah placeholder
-                    $('#instansi').attr('placeholder', 'Masukkan nama tujuan');
+                    $('#label_instansi').html('Instansi Tujuan <span class="text-danger">*</span>');
                 } else {
-                    $('#div_no_agenda').hide();
-                    $('#div_tgl_diterima').hide();
-                    $('#no_agenda').prop('disabled', true);
-                    $('#tgl_diterima').prop('disabled', true);
-                    $('#label_instansi').html('Pengirim / Tujuan <span class="text-danger">*</span>');
-                    $('#instansi').attr('placeholder', 'Masukkan pengirim atau tujuan surat');
+                    $('#label_instansi').html('Instansi <span class="text-danger">*</span>');
                 }
             }
 

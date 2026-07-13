@@ -20,7 +20,7 @@ class CreateSuratsTable extends Migration
             $table->string('no_surat', 255);
             $table->date('tgl_surat');
             $table->date('tgl_diterima')->nullable();
-            $table->string('instansi', 255);
+            $table->unsignedBigInteger('instansi_id');
             $table->string('perihal', 255);
             $table->string('lampiran', 255)->nullable();
             $table->unsignedBigInteger('sifat_surat_id');
@@ -30,6 +30,7 @@ class CreateSuratsTable extends Migration
             $table->timestamps();
 
             $table->foreign('sifat_surat_id')->references('id')->on('sifatsurats')->onDelete('restrict');
+            $table->foreign('instansi_id')->references('id')->on('instansi')->restrictOnDelete();
 
             $table->foreign('created_by')->references('id')->on('users')->onDelete('cascade');
         });
