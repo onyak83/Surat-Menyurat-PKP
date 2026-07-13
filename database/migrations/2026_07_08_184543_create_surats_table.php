@@ -30,7 +30,7 @@ class CreateSuratsTable extends Migration
             $table->timestamps();
 
             $table->foreign('sifat_surat_id')->references('id')->on('sifatsurats')->onDelete('restrict');
-            $table->foreign('instansi_id')->references('id')->on('instansi')->restrictOnDelete();
+            $table->foreign('instansi_id')->references('id')->on('instansis')->restrictOnDelete();
 
             $table->foreign('created_by')->references('id')->on('users')->onDelete('cascade');
         });

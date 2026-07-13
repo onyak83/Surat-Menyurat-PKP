@@ -220,12 +220,12 @@ class ManajemenController extends Controller
     }
 
     //sifat surat
-    public function indexSifatsurat()
+    public function indexSifatSurat()
     {
         return view('dashboard.manajemen.sifatsurat.index');
     }
 
-    public function getSifatsurat(Request $request)
+    public function getSifatSurat(Request $request)
     {
         if (! $request->ajax()) {
             abort(404);
@@ -244,15 +244,15 @@ class ManajemenController extends Controller
             ->make(true);
     }
 
-    public function createSifatsurat()
+    public function createSifatSurat()
     {
         return view('dashboard.manajemen.sifatsurat.create');
     }
 
-    public function storeSifatsurat(Request $request)
+    public function storeSifatSurat(Request $request)
     {
         $rules = [
-            'nama_sifat' => 'required|string|max:255|unique:sifatsurat,nama_sifat',
+            'nama_sifat' => 'required|string|max:255|unique:sifatsurats,nama_sifat',
         ];
 
         $messages = [
@@ -281,7 +281,7 @@ class ManajemenController extends Controller
 
             Alert::success('Berhasil', 'Data Sifat Surat berhasil ditambahkan.');
 
-            return redirect()->route('index.Sifatsurat');
+            return redirect()->route('index.SifatSurat');
 
         } catch (\Exception $e) {
 
@@ -300,17 +300,17 @@ class ManajemenController extends Controller
         }
     }
 
-    public function editSifatsurat(string $id)
+    public function editSifatSurat(string $id)
     {
         $editSifatsurat = Sifatsurat::findOrFail($id);
 
         return view('dashboard.manajemen.sifatsurat.edit', compact('editSifatsurat'));
     }
 
-    public function updateSifatsurat(Request $request, string $id)
+    public function updateSifatSurat(Request $request, string $id)
     {
         $rules = [
-            'nama_sifat' => 'required|string|max:255|unique:sifatsurat,nama_sifat,' . $id,
+            'nama_sifat' => 'required|string|max:255|unique:sifatsurats,nama_sifat,' . $id,
         ];
 
         $messages = [
@@ -332,14 +332,16 @@ class ManajemenController extends Controller
         try {
 
             $sifatsurat = Sifatsurat::findOrFail($id);
-            $sifatsurat->nama_sifat = trim($request->nama_sifat);
-            $sifatsurat->save();
+
+            $sifatsurat->update([
+                'nama_sifat' => trim($request->nama_sifat),
+            ]);
 
             DB::commit();
 
             Alert::success('Berhasil', 'Data Sifat Surat berhasil diperbarui.');
 
-            return redirect()->route('index.Sifatsurat');
+            return redirect()->route('index.SifatSurat');
 
         } catch (\Exception $e) {
 
@@ -359,35 +361,31 @@ class ManajemenController extends Controller
         }
     }
 
-    public function deleteSifatsurat(string $id)
+    public function deleteSifatSurat(string $id)
     {
         DB::beginTransaction();
 
         try {
 
-            $user = User::findOrFail($id);
-
-            $user->delete();
-
+            $sifatsurat = Sifatsurat::findOrFail($id);
+            $sifatsurat->delete();
             DB::commit();
 
-            Alert::success('Berhasil', 'Data berhasil dihapus.');
+            Alert::success('Berhasil', 'Data Sifat Surat berhasil dihapus.');
 
-            return redirect()->route('index.User');
+            return redirect()->route('index.SifatSurat');
 
         } catch (\Exception $e) {
 
             DB::rollBack();
-
-            Log::error('Delete User Error', [
-                'user_id' => $id,
-                'message' => $e->getMessage(),
-                'file'    => $e->getFile(),
-                'line'    => $e->getLine(),
+            Log::error('Delete Sifat Surat Error', [
+                'sifatsurat_id' => $id,
+                'message'       => $e->getMessage(),
+                'file'          => $e->getFile(),
+                'line'          => $e->getLine(),
             ]);
 
             Alert::error('Gagal', 'Terjadi kesalahan saat menghapus data.');
-
             return redirect()->back();
         }
     }
