@@ -138,8 +138,7 @@
                                                             required>
                                                             <option value="">-- Pilih Instansi --</option>
                                                             @foreach ($instansi as $item)
-                                                                <option value="{{ $item->id }}"
-                                                                    {{ old('instansi_id') == $item->id ? 'selected' : '' }}>
+                                                                <option value="{{ $item->id }}">
                                                                     {{ $item->nama_instansi }}
                                                                 </option>
                                                             @endforeach
@@ -219,39 +218,320 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Tambah Instansi -->
+    <div class="modal fade" id="modalInstansi" tabindex="-1" aria-labelledby="modalInstansiLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <form id="formInstansi">
+                    @csrf
+
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="modalInstansiLabel"><i class="fa fa-building"></i>
+                            Tambah Instansi
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="row">
+                            <!-- Kode Instansi -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Kode Instansi</label>
+                                    <input type="text" name="kode_instansi" class="form-control" maxlength="30"
+                                        placeholder="Contoh : BKPSDM">
+                                    <small class="text-danger error-kode_instansi"></small>
+                                </div>
+                            </div>
+
+                            <!-- Jenis Instansi -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>
+                                        Jenis Instansi
+                                        <span class="text-danger">*</span>
+                                    </label>
+
+                                    <select name="jenis_instansi" class="form-control">
+                                        <option value="">-- Pilih Jenis Instansi --</option>
+                                        <option value="Kementerian">Kementerian</option>
+                                        <option value="Lembaga">Lembaga</option>
+                                        <option value="Pemerintah Provinsi">Pemerintah Provinsi</option>
+                                        <option value="Pemerintah Kabupaten/Kota">Pemerintah Kabupaten/Kota</option>
+                                        <option value="OPD">OPD</option>
+                                        <option value="Kecamatan">Kecamatan</option>
+                                        <option value="Kelurahan">Kelurahan</option>
+                                        <option value="BUMN">BUMN</option>
+                                        <option value="BUMD">BUMD</option>
+                                        <option value="Swasta">Swasta</option>
+                                        <option value="Perguruan Tinggi">Perguruan Tinggi</option>
+                                        <option value="Organisasi">Organisasi</option>
+                                        <option value="Lainnya">Lainnya</option>
+                                    </select>
+                                    <small class="text-danger error-jenis_instansi"></small>
+
+                                </div>
+                            </div>
+
+                            <!-- Nama Instansi -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label>Nama Instansi<span class="text-danger">*</span></label>
+                                    <input type="text" name="nama_instansi" class="form-control"
+                                        placeholder="Masukkan Nama Instansi">
+                                    <small class="text-danger error-nama_instansi"></small>
+                                </div>
+                            </div>
+
+                            <!-- Alamat -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label>Alamat</label>
+                                    <textarea name="alamat" rows="3" class="form-control" placeholder="Masukkan Alamat"></textarea>
+                                    <small class="text-danger error-alamat"></small>
+                                </div>
+                            </div>
+
+                            <!-- Telepon -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Nomor Telepon</label>
+                                    <input type="text" name="telepon" class="form-control" maxlength="30"
+                                        placeholder="08xxxxxxxxxx">
+                                    <small class="text-danger error-telepon"></small>
+                                </div>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" name="email" class="form-control"
+                                        placeholder="contoh@email.com">
+                                    <small class="text-danger error-email"></small>
+                                </div>
+                            </div>
+
+                            <!-- Status -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <div class="custom-control custom-switch">
+                                        <input type="checkbox" class="custom-control-input" id="statusModal"
+                                            name="status" value="1" checked>
+                                        <label class="custom-control-label" for="statusModal">
+                                            Status Aktif
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+                            <i class="fa fa-times"></i> Batal
+                        </button>
+
+                        <button type="submit" id="btnSimpanInstansi" class="btn btn-success">
+                            <i class="fa fa-save"></i> Simpan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
 
-
 @push('myscript')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).ready(function() {
+            // Toggle Jenis Surat
             function toggleJenisSurat() {
+
                 let jenis = $('#jenis_surat').val();
 
-                if (jenis === 'masuk') {
+                if (jenis == 'masuk') {
+
                     $('#div_no_agenda').slideDown();
                     $('#div_tgl_diterima').slideDown();
+
                     $('#no_agenda').prop('disabled', false);
                     $('#tgl_diterima').prop('disabled', false);
-                    $('#label_instansi').html('Instansi Asal <span class="text-danger">*</span>');
-                } else if (jenis === 'keluar') {
+
+                    $('#label_instansi').html(
+                        'Instansi Asal <span class="text-danger">*</span>'
+                    );
+
+                } else if (jenis == 'keluar') {
+
                     $('#div_no_agenda').slideUp();
                     $('#div_tgl_diterima').slideUp();
+
                     $('#no_agenda').prop('disabled', true).val('');
                     $('#tgl_diterima').prop('disabled', true).val('');
-                    $('#label_instansi').html('Instansi Tujuan <span class="text-danger">*</span>');
+
+                    $('#label_instansi').html(
+                        'Instansi Tujuan <span class="text-danger">*</span>'
+                    );
                 } else {
-                    $('#label_instansi').html('Instansi <span class="text-danger">*</span>');
+                    $('#label_instansi').html(
+                        'Instansi <span class="text-danger">*</span>'
+                    );
                 }
             }
 
-            // Jalankan saat halaman dibuka
             toggleJenisSurat();
 
-            // Jalankan saat jenis surat berubah
-            $('#jenis_surat').on('change', function() {
+            $('#jenis_surat').change(function() {
                 toggleJenisSurat();
             });
+
         });
+
+        //   Reload Dropdown Instansi
+        function reloadInstansiDropdown(selected = '') {
+
+            $.ajax({
+                url: "{{ route('get.InstansiDropdown') }}",
+                type: "GET",
+                dataType: "json",
+
+                success: function(response) {
+                    let html = '';
+                    html += '<option value="">-- Pilih Instansi --</option>';
+                    $.each(response, function(i, item) {
+                        html += `
+                    <option value="${item.id}">
+                        ${item.nama_instansi}
+                    </option>
+                `;
+
+                    });
+                    $('#instansi_id').html(html);
+                    if (selected != '') {
+                        $('#instansi_id').val(selected);
+                    }
+                },
+
+                error: function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Tidak dapat memuat data Instansi.'
+                    });
+                }
+            });
+        }
+
+        //   Simpan Instansi dari Modal
+        $(document).ready(function() {
+            $('#formInstansi').on('submit', function(e) {
+                e.preventDefault();
+                // Bersihkan error lama
+                $('[class^="error-"]').text('');
+                $('#btnSimpanInstansi')
+                    .prop('disabled', true)
+                    .html('<i class="fa fa-spinner fa-spin"></i> Menyimpan...');
+
+                $.ajax({
+                    url: "{{ route('store.Instansi') }}",
+                    type: "POST",
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+
+                    data: $(this).serialize(),
+                    dataType: "json",
+                    success: function(response) {
+                        $('#btnSimpanInstansi')
+                            .prop('disabled', false)
+                            .html('<i class="fa fa-save"></i> Simpan');
+                        if (response.success) {
+                            reloadInstansiDropdown(response.data.id);
+                            $('#formInstansi')[0].reset();
+                            // Bootstrap 5
+                            const modalElement = document.getElementById('modalInstansi');
+                            const modal = bootstrap.Modal.getInstance(modalElement);
+
+                            if (modal) {
+                                modal.hide();
+                            }
+
+                            $('body').removeClass('modal-open');
+                            $('.modal-backdrop').remove();
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: response.message,
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+
+                        }
+
+                    },
+
+                    error: function(xhr) {
+                        $('#btnSimpanInstansi')
+                            .prop('disabled', false)
+                            .html('<i class="fa fa-save"></i> Simpan');
+                        if (xhr.status == 422) {
+                            let errors = xhr.responseJSON.errors;
+                            $.each(errors, function(key, value) {
+                                $('.error-' + key).text(value[0]);
+                            });
+
+                        } else {
+                            console.log(xhr.responseText);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: 'Terjadi kesalahan pada server.'
+                            });
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+
+    <script>
+        success: function(response) {
+            $('#btnSimpanInstansi')
+                .prop('disabled', false)
+                .html('<i class="fa fa-save"></i> Simpan');
+
+            if (response.success) {
+
+                // reload dropdown
+                reloadInstansiDropdown(response.data.id);
+
+                // reset form
+                $('#formInstansi')[0].reset();
+
+                // tutup modal
+                const modalElement = document.getElementById('modalInstansi');
+                const modal = bootstrap.Modal.getInstance(modalElement);
+
+                if (modal) {
+                    modal.hide();
+                }
+
+                $('body').removeClass('modal-open');
+                $('.modal-backdrop').remove();
+
+                // SweetAlert
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil',
+                    html: '<b>Instansi berhasil ditambahkan.</b><br>Silakan lanjutkan memilih instansi.',
+                    timer: 1800,
+                    showConfirmButton: false
+                });
+            }
+        }
     </script>
 @endpush

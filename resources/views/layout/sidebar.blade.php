@@ -71,7 +71,7 @@
                                  </a>
                              </li>
                              <li>
-                                 <a href="components/gridsystem.html">
+                                 <a href="{{ route('index.ArsipDigital') }}">
                                      <span class="sub-item">Arsip Surat Digital</span>
                                  </a>
                              </li>
@@ -107,7 +107,7 @@
                  </li>
 
                  <li class="nav-item">
-                     <a data-bs-toggle="collapse" href="#base">
+                     <a href="{{ route('index.Instansi') }}">
                          <i class="fas fa-building"></i>
                          <p>Instansi</p>
                      </a>

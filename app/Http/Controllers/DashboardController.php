@@ -41,6 +41,15 @@ class DashboardController extends Controller
         ));
     }
 
+    public function getInstansiDropdown()
+    {
+        $viewInstansi = Instansi::where('status', true)
+            ->orderBy('nama_instansi', 'ASC')
+            ->get(['id', 'nama_instansi','jenis_instansi']);
+
+        return response()->json($viewInstansi);
+    }
+
     public function indexSurat()
     {
         return view('dashboard.surat.index');
@@ -49,8 +58,7 @@ class DashboardController extends Controller
     public function getSurat(Request $request)
     {
         if ($request->ajax()) {
-            $dataSurat = Surat::with('sifatSurat')
-                ->orderBy('id', 'desc');
+            $dataSurat = Surat::with(['sifatSurat','instansi'])->orderBy('id', 'desc');
 
             return datatables()->of($dataSurat)
             ->editColumn('tgl_diterima', function ($row) {
@@ -100,10 +108,13 @@ class DashboardController extends Controller
             ->addColumn('lihatfile', function ($row) {
                 return view('dashboard.surat.lihatfile', ['surat' => $row]);
             })
+            ->addColumn('instansi', function ($row) {
+                return optional($row->instansi)->nama_instansi ?? '-';
+            })
             ->addColumn('aksi', function ($row) {
                 return view('dashboard.surat.aksi', ['surat' => $row]);
             })
-            ->rawColumns(['no_surat', 'lihatfile', 'aksi'])
+            ->rawColumns(['no_surat', 'lihatfile', 'instansi', 'aksi'])
             ->make(true);
         }
     }
@@ -120,85 +131,109 @@ class DashboardController extends Controller
 
     public function storeSurat(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-        'jenis_surat'  => 'required|in:masuk,keluar',
-        'no_agenda'    => 'nullable|string|max:255',
-        'sifat_surat_id' => 'required|exists:sifatsurats,id',
-        'no_surat'     => 'required|string|max:255',
-        'tgl_surat'    => 'required|date',
-        'tgl_diterima' => 'nullable|date',
-        'instansi_id'  => 'required|exists:instansis,id',
-        'perihal'      => 'required|string|max:255',
-        'lampiran'     => 'nullable|string|max:255',
-        'file_surat'   => 'required|file|mimes:pdf|max:2048',
-        'keterangan'   => 'nullable|string|max:255',
-    ]);
+        $rules = [
+            'jenis_surat'    => 'required|in:masuk,keluar',
+            'sifat_surat_id' => 'required|exists:sifatsurats,id',
+            'no_surat'       => 'required|string|max:255|unique:surats,no_surat',
+            'tgl_surat'      => 'required|date',
+            'tgl_diterima'   => ['nullable','required_if:jenis_surat,masuk','date','after_or_equal:tgl_surat'],
+            'instansi_id'    => 'required|exists:instansis,id',
+            'perihal'        => 'required|string|max:255',
+            'lampiran'       => 'nullable|string|max:255',
+            'file_surat'     => 'required|file|mimes:pdf|max:2048',
+            'keterangan'     => 'nullable|string',
+        ];
+
+        $messages = [
+            'jenis_surat.required'     => 'Jenis Surat wajib dipilih.',
+            'jenis_surat.in'           => 'Jenis Surat tidak valid.',
+
+            'sifat_surat_id.required'  => 'Sifat Surat wajib dipilih.',
+            'sifat_surat_id.exists'    => 'Sifat Surat tidak ditemukan.',
+
+            'no_surat.required'        => 'Nomor Surat wajib diisi.',
+            'no_surat.unique'          => 'Nomor Surat sudah terdaftar.',
+            'no_surat.max'             => 'Nomor Surat maksimal 255 karakter.',
+
+            'tgl_surat.required'       => 'Tanggal Surat wajib diisi.',
+            'tgl_surat.date'           => 'Format Tanggal Surat tidak valid.',
+
+            'tgl_diterima.required_if' => 'Tanggal Diterima wajib diisi untuk Surat Masuk.',
+            'tgl_diterima.date'        => 'Format Tanggal Diterima tidak valid.',
+            'tgl_diterima.after_or_equal' => 'Tanggal Diterima tidak boleh lebih kecil dari Tanggal Surat.',
+
+            'instansi_id.required'     => 'Instansi wajib dipilih.',
+            'instansi_id.exists'       => 'Instansi tidak ditemukan.',
+
+            'perihal.required'         => 'Perihal wajib diisi.',
+            'perihal.max'              => 'Perihal maksimal 255 karakter.',
+
+            'lampiran.max'             => 'Lampiran maksimal 255 karakter.',
+
+            'file_surat.required'      => 'File Surat wajib diunggah.',
+            'file_surat.file'          => 'File Surat tidak valid.',
+            'file_surat.mimes'         => 'File Surat harus berformat PDF.',
+            'file_surat.max'           => 'Ukuran File Surat maksimal 2 MB.',
+
+            'keterangan.string'        => 'Keterangan harus berupa teks.',
+        ];
+
+        $validator = Validator::make($request->all(), $rules, $messages);
 
         if ($validator->fails()) {
             return redirect()->back()
-            ->withErrors($validator)
-            ->withInput();
+                ->withErrors($validator)
+                ->withInput();
         }
+
         DB::beginTransaction();
-        $folder = '';
-        $fileSurat = '';
+
+        $folder = null;
+        $namaFile = null;
 
         try {
-            if ($request->hasFile('file_surat')) {
-                $file = $request->file('file_surat');
-
-                // Validasi MIME Type
-                if ($file->getMimeType() != 'application/pdf') {
-                    return redirect()->back()
-                    ->withErrors([
-                        'file_surat' => 'File yang diupload harus berupa PDF.'
-                    ])
-                    ->withInput();
-                }
-
-                if ($request->jenis_surat == 'masuk') {
-                    $folder = 'File_Surat/Masuk/' . date('Y');
-                    $prefix = 'File_Surat_Masuk';
-                } else {
-                    $folder = 'File_Surat/Keluar/' . date('Y');
-                    $prefix = 'File_Surat_Keluar';
-                }
-
-                $fileSurat = $prefix . '_' . date('YmdHis'). '_'. Str::uuid(). '.pdf';
-
-                $file->storeAs($folder, $fileSurat, 'public');
+            // upload file
+            $file = $request->file('file_surat');
+            if ($request->jenis_surat == 'masuk') {
+                $folder = 'surat/masuk/' . now()->year;
+                $prefix = 'SM';
+            } else {
+                $folder = 'surat/keluar/' . now()->year;
+                $prefix = 'SK';
             }
 
+            $namaFile = $prefix . '_' .now()->format('YmdHis') . '_' .Str::upper(Str::random(8)) .'.pdf';
+            $file->storeAs($folder, $namaFile, 'public');
+
+            // generate no agenda surat masuk
             $noAgenda = null;
-
             if ($request->jenis_surat == 'masuk') {
-                $tahun = date('Y');
-
+                $tahun = now()->year;
                 $lastNumber = Surat::where('jenis_surat', 'masuk')
-        ->whereYear('created_at', $tahun)
-        ->lockForUpdate()
-        ->selectRaw('MAX(CAST(SUBSTRING_INDEX(no_agenda, "/", 1) AS UNSIGNED)) as max_number')
-        ->value('max_number');
-
-                $nextNumber = str_pad(($lastNumber + 1), 4, '0', STR_PAD_LEFT);
-
+                    ->whereYear('created_at', $tahun)
+                    ->lockForUpdate()
+                    ->selectRaw('MAX(CAST(SUBSTRING_INDEX(no_agenda,"/",1) AS UNSIGNED)) as nomor')
+                    ->value('nomor');
+                $nextNumber = str_pad(($lastNumber ?? 0) + 1, 4, '0', STR_PAD_LEFT);
                 $noAgenda = $nextNumber . '/DPUPR-OKI/' . $tahun;
             }
 
+            // simpan data
             Surat::create([
-            'jenis_surat'  => $request->jenis_surat,
-            'no_agenda'    => $noAgenda,
-            'sifat_surat_id' => $request->sifat_surat_id,
-            'no_surat'     => $request->no_surat,
-            'tgl_surat'    => $request->tgl_surat,
-            'tgl_diterima' => $request->tgl_diterima,
-            'instansi_id'  => $request->instansi_id,
-            'perihal'      => $request->perihal,
-            'lampiran'     => $request->lampiran,
-            'file_surat'   => $folder . '/' . $fileSurat,
-            'keterangan'   => $request->keterangan,
-            'created_by'   => Auth::id(),
-        ]);
+                'jenis_surat'    => $request->jenis_surat,
+                'no_agenda'      => $noAgenda,
+                'no_surat'       => trim($request->no_surat),
+                'tgl_surat'      => $request->tgl_surat,
+                'tgl_diterima'   => $request->tgl_diterima,
+                'instansi_id'    => $request->instansi_id,
+                'perihal'        => trim($request->perihal),
+                'lampiran'       => $request->lampiran ? trim($request->lampiran) : null,
+                'sifat_surat_id' => $request->sifat_surat_id,
+                'file_surat'     => $folder . '/' . $namaFile,
+                'keterangan'     => $request->keterangan ? trim($request->keterangan) : null,
+                'created_by'     => Auth::id(),
+
+            ]);
 
             DB::commit();
 
@@ -208,20 +243,18 @@ class DashboardController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            if (!empty($fileSurat)) {
-                if (Storage::disk('public')->exists($folder . '/' . $fileSurat)) {
-                    Storage::disk('public')->delete($folder . '/' . $fileSurat);
-                }
+            if ($namaFile && Storage::disk('public')->exists($folder . '/' . $namaFile)) {
+                Storage::disk('public')->delete($folder . '/' . $namaFile);
             }
 
             Log::error('Store Surat Error', [
-            'message' => $e->getMessage(),
-            'file'    => $e->getFile(),
-            'line'    => $e->getLine(),
-        ]);
+                'request' => $request->except('_token'),
+                'message' => $e->getMessage(),
+                'file'    => $e->getFile(),
+                'line'    => $e->getLine(),
+            ]);
 
             Alert::error('Gagal', 'Terjadi kesalahan saat menyimpan data.');
-
             return redirect()->back()->withInput();
         }
     }
@@ -232,6 +265,7 @@ class DashboardController extends Controller
         $instansi = Instansi::where('status', true)
             ->orderBy('nama_instansi')
             ->get();
+
         $surat = Surat::findOrFail($id);
 
         return view('dashboard.surat.edit', compact('surat', 'sifatSurat', 'instansi'));
@@ -380,13 +414,14 @@ class DashboardController extends Controller
     public function indexAgendaSuratMasuk()
     {
         $sifatSurat = DB::table('sifatsurats')->get();
+        $instansiview = DB::table('instansis')->get();
 
-        return view('dashboard.laporan.agendasuratmasuk.index', compact('sifatSurat'));
+        return view('dashboard.laporan.agendasuratmasuk.index', compact('sifatSurat', 'instansiview'));
     }
 
     public function getAgendaSuratMasuk(Request $request)
     {
-        $query = Surat::with('sifatSurat')
+        $query = Surat::with(['sifatSurat','instansi'])
             ->where('jenis_surat', 'masuk');
 
         if ($request->filled('tgl_awal')) {
@@ -405,53 +440,108 @@ class DashboardController extends Controller
             $query->where('sifat_surat_id', $request->sifat_surat);
         }
 
+        if ($request->filled('instansi_id')) {
+            $query->where('instansi_id', $request->instansi_id);
+        }
+
         $query->orderByRaw("
             CAST(SUBSTRING_INDEX(no_agenda,'/',1) AS UNSIGNED) ASC
         ");
 
         return DataTables::of($query)
 
-            ->addIndexColumn()
+        ->addIndexColumn()
 
-            ->editColumn('no_agenda', function ($row) {
-                return $row->no_agenda;
-            })
+        ->editColumn('no_agenda', function ($row) {
+            return $row->no_agenda;
+        })
 
-            ->editColumn('tgl_diterima', function ($row) {
-                return Carbon::parse($row->tgl_diterima)
-                    ->locale('id')
-                    ->translatedFormat('d F Y');
-            })
+        ->editColumn('tgl_diterima', function ($row) {
+            return Carbon::parse($row->tgl_diterima)
+                ->locale('id')
+                ->translatedFormat('d F Y');
+        })
 
-            ->editColumn('sifat_surat', function ($row) {
-                return $row->sifatSurat ? $row->sifatSurat->nama_sifat : '-';
-            })
+        ->editColumn('sifat_surat', function ($row) {
+            return optional($row->sifatSurat)->nama_sifat ?? '-';
+        })
 
-            ->editColumn('no_surat', function ($row) {
-                return '
-                    <div>
-                        <strong>'.$row->no_surat.'</strong>
-                        <br>
-                        <small class="text-muted">'.
+        ->editColumn('no_surat', function ($row) {
+            return '
+                <div>
+                    <strong>'.$row->no_surat.'</strong><br>
+                    <small class="text-muted">'.
                         Carbon::parse($row->tgl_surat)
                             ->locale('id')
                             ->translatedFormat('d F Y')
-                        .'</small>
-                    </div>';
-            })
+                    .'</small>
+                </div>';
+        })
 
-            ->editColumn('instansi', function ($row) {
-                return e($row->instansi);
-            })
+        ->addColumn('instansi', function ($row) {
+            return optional($row->instansi)->nama_instansi ?? '-';
+        })
 
-            ->editColumn('perihal', function ($row) {
-                return e($row->perihal);
-            })
+        ->editColumn('perihal', function ($row) {
+            return e($row->perihal);
+        })
 
-            ->rawColumns([
-                'no_surat', 'sifat_surat', 'instansi', 'perihal'
-            ])
+        ->addColumn('lihatsurat', function ($row) {
+            return view('dashboard.laporan.agendasuratmasuk.lihatsurat', compact('row'));
+        })
 
-            ->make(true);
+        ->rawColumns(['no_surat','instansi','perihal', 'lihatsurat'])
+        ->make(true);
     }
+
+        public function indexArsipDigital()
+    {
+        $instansi = Instansi::orderBy('nama_instansi')
+            ->get();
+
+        return view('dashboard.laporan.arsipsuratdigital.index', compact('instansi'));
+    }
+
+    public function getArsipDigital(Request $request)
+    {
+        $arsip = Surat::with(['instansi', 'sifatSurat'])
+            ->where('jenis_surat', $request->jenis_surat)
+
+            ->when($request->nomor_surat, function ($q) use ($request) {
+                $q->where('no_surat', 'like', '%' . $request->nomor_surat . '%');
+            })
+
+            ->when($request->tgl_surat, function ($q) use ($request) {
+                $q->whereDate('tgl_surat', $request->tgl_surat);
+            })
+
+            ->when($request->perihal, function ($q) use ($request) {
+                $q->where('perihal', 'like', '%' . $request->perihal . '%');
+            })
+
+            ->when($request->instansi_id, function ($q) use ($request) {
+                $q->where('instansi_id', $request->instansi_id);
+            })
+
+            ->latest()
+            ->get()
+
+            // LETAKNYA DI SINI
+            ->map(function ($item) {
+                $item->tgl_surat = Carbon::parse($item->tgl_surat)
+                    ->translatedFormat('d F Y');
+                return $item;
+            });
+
+        return response()->json($arsip);
+    }
+
+    public function detailArsipDigital(string $id)
+    {
+        $surat = Surat::with(['instansi','sifatSurat','user'])
+            ->findOrFail($id);
+
+        return response()->json($surat);
+    }
+
 }

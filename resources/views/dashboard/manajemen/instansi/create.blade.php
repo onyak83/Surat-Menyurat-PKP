@@ -5,7 +5,7 @@
         <div class="page-inner">
             <div class="page-header d-flex justify-content-between align-items-center">
                 <div>
-                    <h3 class="fw-bold mb-1">Input User</h3>
+                    <h3 class="fw-bold mb-1">Input Instansi</h3>
                 </div>
 
                 <ul class="breadcrumbs mb-0">
@@ -18,13 +18,13 @@
                         <i class="icon-arrow-right"></i>
                     </li>
                     <li class="nav-item">
-                        <a href="{{ route('index.User') }}">Data User</a>
+                        <a href="{{ route('index.Instansi') }}">Instansi</a>
                     </li>
                     <li class="separator">
                         <i class="icon-arrow-right"></i>
                     </li>
                     <li class="nav-item">
-                        <a href="#">Input Surat</a>
+                        <a href="#">Input Instansi</a>
                     </li>
                 </ul>
             </div>
@@ -32,102 +32,159 @@
             <div class="card">
                 <div class="card-body">
                     <div class="row justify-content-center">
-                        <div class="col-lg-10 col-xl-10">
-                            <div class="card">
-                                <form action="{{ route('store.User') }}" method="POST">
-                                    @csrf
+                        <div class="col-lg-8">
 
-                                    <div class="row">
+                            <div class="card shadow-sm">
+                                <div class="card-body">
 
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>Nama</label>
-                                                <input type="text" name="name" class="form-control"
-                                                    value="{{ old('name') }}" required>
-                                            </div>
-                                        </div>
+                                    <form action="{{ route('store.Instansi') }}" method="POST">
+                                        @csrf
 
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>Email</label>
-                                                <input type="email" name="email" class="form-control"
-                                                    value="{{ old('email') }}" required>
-                                            </div>
-                                        </div>
+                                        <div class="row">
+                                            <!-- Kode Instansi -->
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Kode Instansi</label>
+                                                    <input type="text" name="kode_instansi"
+                                                        class="form-control @error('kode_instansi') is-invalid @enderror"
+                                                        value="{{ old('kode_instansi') }}" maxlength="30"
+                                                        placeholder="Contoh : BKPSDM">
 
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>Password <span class="text-danger">*</span></label>
-
-                                                <div class="input-group">
-                                                    <input type="password" name="password" id="password"
-                                                        class="form-control" placeholder="Masukkan Password" required>
-
-                                                    <button class="btn btn-outline-secondary" type="button"
-                                                        id="togglePassword">
-
-                                                        <i class="fa fa-eye"></i>
-
-                                                    </button>
+                                                    @error('kode_instansi')
+                                                        <div class="invalid-feedback">
+                                                            {{ $message }}
+                                                        </div>
+                                                    @enderror
                                                 </div>
-
-                                                @error('password')
-                                                    <small class="text-danger">{{ $message }}</small>
-                                                @enderror
-
                                             </div>
+
+                                            <!-- Jenis Instansi -->
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Jenis Instansi <span class="text-danger">*</span></label>
+
+                                                    <select name="jenis_instansi"
+                                                        class="form-control @error('jenis_instansi') is-invalid @enderror"
+                                                        required>
+                                                        <option value="">-- Pilih Jenis Instansi --</option>
+                                                        @foreach (['Kementerian', 'Lembaga', 'Pemerintah Provinsi', 'Pemerintah Kabupaten/Kota', 'OPD', 'Kecamatan', 'Kelurahan', 'BUMN', 'BUMD', 'Swasta', 'Perguruan Tinggi', 'Organisasi', 'Lainnya'] as $jenis)
+                                                            <option value="{{ $jenis }}"
+                                                                {{ old('jenis_instansi') == $jenis ? 'selected' : '' }}>
+                                                                {{ $jenis }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+
+                                                    @error('jenis_instansi')
+                                                        <div class="invalid-feedback">
+                                                            {{ $message }}
+                                                        </div>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
+                                            <!-- Nama Instansi -->
+                                            <div class="col-md-12">
+                                                <div class="form-group">
+                                                    <label>Nama Instansi <span class="text-danger">*</span></label>
+                                                    <input type="text" name="nama_instansi"
+                                                        class="form-control @error('nama_instansi') is-invalid @enderror"
+                                                        value="{{ old('nama_instansi') }}"
+                                                        placeholder="Masukkan Nama Instansi" required>
+
+                                                    @error('nama_instansi')
+                                                        <div class="invalid-feedback">
+                                                            {{ $message }}
+                                                        </div>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
+                                            <!-- Alamat -->
+                                            <div class="col-md-12">
+                                                <div class="form-group">
+                                                    <label>Alamat</label>
+                                                    <textarea name="alamat" rows="3" class="form-control @error('alamat') is-invalid @enderror"
+                                                        placeholder="Masukkan Alamat">{{ old('alamat') }}</textarea>
+
+                                                    @error('alamat')
+                                                        <div class="invalid-feedback">
+                                                            {{ $message }}
+                                                        </div>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
+                                            <!-- Telepon -->
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Nomor Telepon</label>
+                                                    <input type="text" name="telepon"
+                                                        class="form-control @error('telepon') is-invalid @enderror"
+                                                        value="{{ old('telepon') }}" maxlength="30"
+                                                        placeholder="08xxxxxxxxxx">
+
+                                                    @error('telepon')
+                                                        <div class="invalid-feedback">
+                                                            {{ $message }}
+                                                        </div>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
+                                            <!-- Email -->
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Email</label>
+                                                    <input type="email" name="email"
+                                                        class="form-control @error('email') is-invalid @enderror"
+                                                        value="{{ old('email') }}" placeholder="contoh@email.com">
+
+                                                    @error('email')
+                                                        <div class="invalid-feedback">
+                                                            {{ $message }}
+                                                        </div>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
+                                            <!-- Status -->
+                                            <div class="col-md-12">
+                                                <div class="form-group">
+                                                    <div class="custom-control custom-switch">
+                                                        <input type="checkbox" class="custom-control-input" id="status"
+                                                            name="status" value="1"
+                                                            {{ old('status', 1) ? 'checked' : '' }}>
+                                                        <label class="custom-control-label" for="status">
+                                                            Status Aktif
+                                                        </label>
+
+                                                    </div>
+
+                                                </div>
+                                            </div>
+
                                         </div>
 
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>Role</label>
-                                                <select name="role_id" class="form-select" required>
-                                                    <option value="">-- Pilih Role --</option>
-                                                    @foreach ($role as $item)
-                                                        <option value="{{ $item->id }}">
-                                                            {{ $item->name_role }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
+                                        <div class="text-center">
+                                            <a href="{{ route('index.Instansi') }}" class="btn btn-danger">
+                                                <i class="fas fa-times"></i>
+                                                Batal
+                                            </a>
+                                            <button type="submit" class="btn btn-success">
+                                                <i class="fas fa-save"></i>
+                                                Simpan
+                                            </button>
                                         </div>
-                                    </div>
 
-                                    <div class="card-action text-center">
-                                        <a href="{{ route('index.User') }}" class="btn btn-danger">
-                                            Batal
-                                        </a>
-                                        <button type="submit" class="btn btn-success">
-                                            Simpan
-                                        </button>
-                                    </div>
+                                    </form>
 
-                                </form>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
 @endsection
-
-@push('myscript')
-    <script>
-        $('#togglePassword').click(function() {
-            let password = $('#password');
-            let icon = $(this).find('i');
-
-            if (password.attr('type') === 'password') {
-                password.attr('type', 'text');
-                icon.removeClass('fa-eye');
-                icon.addClass('fa-eye-slash');
-            } else {
-                password.attr('type', 'password');
-                icon.removeClass('fa-eye-slash');
-                icon.addClass('fa-eye');
-            }
-        });
-    </script>
-@endpush

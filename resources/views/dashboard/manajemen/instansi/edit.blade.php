@@ -3,9 +3,10 @@
 @section('content')
     <div class="container">
         <div class="page-inner">
+
             <div class="page-header d-flex justify-content-between align-items-center">
                 <div>
-                    <h3 class="fw-bold mb-1">Edit User</h3>
+                    <h3 class="fw-bold mb-1">Edit Instansi</h3>
                 </div>
 
                 <ul class="breadcrumbs mb-0">
@@ -14,17 +15,21 @@
                             <i class="icon-home"></i>
                         </a>
                     </li>
+
                     <li class="separator">
                         <i class="icon-arrow-right"></i>
                     </li>
+
                     <li class="nav-item">
-                        <a href="{{ route('index.User') }}">Semua User</a>
+                        <a href="{{ route('index.Instansi') }}">Instansi</a>
                     </li>
+
                     <li class="separator">
                         <i class="icon-arrow-right"></i>
                     </li>
+
                     <li class="nav-item">
-                        <a href="#">Edit User</a>
+                        <a href="#">Edit Instansi</a>
                     </li>
                 </ul>
             </div>
@@ -32,26 +37,104 @@
             <div class="card">
                 <div class="card-body">
                     <div class="row justify-content-center">
-                        <div class="col-lg-10 col-xl-10">
-                            <div class="card">
+                        <div class="col-lg-8">
 
-                                <form action="{{ route('update.User', $editUser->id) }}" method="POST">
-                                    @csrf
-                                    @method('PUT')
+                            <div class="card shadow-sm">
+                                <div class="card-body">
 
-                                    <div class="card-body">
+                                    <form action="{{ route('update.Instansi', $editInstansi->id) }}" method="POST">
+                                        @csrf
+                                        @method('PUT')
 
                                         <div class="row">
 
-                                            <!-- Nama -->
+                                            <!-- Kode Instansi -->
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label>Nama <span class="text-danger">*</span></label>
-                                                    <input type="text" name="name" class="form-control"
-                                                        value="{{ old('name', $editUser->name) }}" required>
+                                                    <label>Kode Instansi</label>
+                                                    <input type="text" name="kode_instansi"
+                                                        class="form-control @error('kode_instansi') is-invalid @enderror"
+                                                        value="{{ old('kode_instansi', $editInstansi->kode_instansi) }}"
+                                                        maxlength="30" placeholder="Contoh : BKPSDM">
 
-                                                    @error('name')
-                                                        <small class="text-danger">{{ $message }}</small>
+                                                    @error('kode_instansi')
+                                                        <div class="invalid-feedback">
+                                                            {{ $message }}
+                                                        </div>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
+                                            <!-- Jenis Instansi -->
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Jenis Instansi <span class="text-danger">*</span></label>
+
+                                                    <select name="jenis_instansi"
+                                                        class="form-control @error('jenis_instansi') is-invalid @enderror"
+                                                        required>
+                                                        <option value="">-- Pilih Jenis Instansi --</option>
+                                                        @foreach (['Kementerian', 'Lembaga', 'Pemerintah Provinsi', 'Pemerintah Kabupaten/Kota', 'OPD', 'Kecamatan', 'Kelurahan', 'BUMN', 'BUMD', 'Swasta', 'Perguruan Tinggi', 'Organisasi', 'Lainnya'] as $jenis)
+                                                            <option value="{{ $jenis }}"
+                                                                {{ old('jenis_instansi', $editInstansi->jenis_instansi) == $jenis ? 'selected' : '' }}>
+                                                                {{ $jenis }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+
+                                                    @error('jenis_instansi')
+                                                        <div class="invalid-feedback">
+                                                            {{ $message }}
+                                                        </div>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
+                                            <!-- Nama Instansi -->
+                                            <div class="col-md-12">
+                                                <div class="form-group">
+                                                    <label>Nama Instansi <span class="text-danger">*</span></label>
+                                                    <input type="text" name="nama_instansi"
+                                                        class="form-control @error('nama_instansi') is-invalid @enderror"
+                                                        value="{{ old('nama_instansi', $editInstansi->nama_instansi) }}"
+                                                        placeholder="Masukkan Nama Instansi" required>
+
+                                                    @error('nama_instansi')
+                                                        <div class="invalid-feedback">
+                                                            {{ $message }}
+                                                        </div>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
+                                            <!-- Alamat -->
+                                            <div class="col-md-12">
+                                                <div class="form-group">
+                                                    <label>Alamat</label>
+                                                    <textarea name="alamat" rows="3" class="form-control @error('alamat') is-invalid @enderror"
+                                                        placeholder="Masukkan Alamat">{{ old('alamat', $editInstansi->alamat) }}</textarea>
+
+                                                    @error('alamat')
+                                                        <div class="invalid-feedback">
+                                                            {{ $message }}
+                                                        </div>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
+                                            <!-- Telepon -->
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Nomor Telepon</label>
+                                                    <input type="text" name="telepon"
+                                                        class="form-control @error('telepon') is-invalid @enderror"
+                                                        value="{{ old('telepon', $editInstansi->telepon) }}" maxlength="30"
+                                                        placeholder="08xxxxxxxxxx">
+
+                                                    @error('telepon')
+                                                        <div class="invalid-feedback">
+                                                            {{ $message }}
+                                                        </div>
                                                     @enderror
                                                 </div>
                                             </div>
@@ -59,82 +142,54 @@
                                             <!-- Email -->
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label>Email <span class="text-danger">*</span></label>
-                                                    <input type="email" name="email" class="form-control"
-                                                        value="{{ old('email', $editUser->email) }}" required>
+                                                    <label>Email</label>
+                                                    <input type="email" name="email"
+                                                        class="form-control @error('email') is-invalid @enderror"
+                                                        value="{{ old('email', $editInstansi->email) }}"
+                                                        placeholder="contoh@email.com">
 
                                                     @error('email')
-                                                        <small class="text-danger">{{ $message }}</small>
+                                                        <div class="invalid-feedback">
+                                                            {{ $message }}
+                                                        </div>
                                                     @enderror
                                                 </div>
                                             </div>
 
-                                            <!-- Password -->
-                                            <div class="col-md-6">
+                                            <!-- Status -->
+                                            <div class="col-md-12">
                                                 <div class="form-group">
-                                                    <label>Password Baru</label>
-                                                    <input type="password" name="password" class="form-control"
-                                                        placeholder="Kosongkan jika tidak ingin mengubah password">
-
-                                                    <small class="text-muted">
-                                                        Biarkan kosong jika password tidak ingin diubah.
-                                                    </small>
-
-                                                    @error('password')
-                                                        <small class="text-danger">{{ $message }}</small>
-                                                    @enderror
+                                                    <div class="custom-control custom-switch">
+                                                        <input type="checkbox" class="custom-control-input" id="status"
+                                                            name="status" value="1"
+                                                            {{ old('status', $editInstansi->status) ? 'checked' : '' }}>
+                                                        <label class="custom-control-label" for="status">
+                                                            Status Aktif
+                                                        </label>
+                                                    </div>
                                                 </div>
                                             </div>
-
-                                            <!-- Role -->
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label>Role <span class="text-danger">*</span></label>
-
-                                                    <select name="role_id" class="form-select" required>
-
-                                                        <option value="">-- Pilih Role --</option>
-
-                                                        @foreach ($role as $item)
-                                                            <option value="{{ $item->id }}"
-                                                                {{ old('role_id', $editUser->role_id) == $item->id ? 'selected' : '' }}>
-                                                                {{ $item->name_role }}
-                                                            </option>
-                                                        @endforeach
-
-                                                    </select>
-
-                                                    @error('role_id')
-                                                        <small class="text-danger">{{ $message }}</small>
-                                                    @enderror
-
-                                                </div>
-                                            </div>
-
                                         </div>
 
-                                    </div>
+                                        <div class="text-center">
+                                            <a href="{{ route('index.Instansi') }}" class="btn btn-danger">
+                                                <i class="fa fa-times"></i>
+                                                Batal
+                                            </a>
+                                            <button type="submit" class="btn btn-success">
+                                                <i class="fa fa-save"></i>
+                                                Update
+                                            </button>
+                                        </div>
 
-                                    <div class="card-action text-center">
+                                    </form>
 
-                                        <a href="{{ route('index.User') }}" class="btn btn-danger">
-                                            <i class="fa fa-times"></i> Batal
-                                        </a>
-
-                                        <button type="submit" class="btn btn-success">
-                                            <i class="fa fa-save"></i> Update
-                                        </button>
-
-                                    </div>
-
-                                </form>
-
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 @endsection

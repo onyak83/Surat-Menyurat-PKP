@@ -4,9 +4,9 @@
     <div class="container">
         <div class="page-inner">
 
-            @include('dashboard.manajemen.user.header')
+            @include('dashboard.manajemen.instansi.header')
 
-            @include('dashboard.manajemen.user.tabel')
+            @include('dashboard.manajemen.instansi.tabel')
 
         </div>
     </div>

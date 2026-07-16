@@ -1,13 +1,6 @@
 <div class="row">
     <div class="col-md-12">
         <div class="card">
-            <div class="card-header">
-                <div class="card-title">
-                    <i class="fas fa-book me-2"></i>
-                    Buku Agenda Surat Masuk
-                </div>
-            </div>
-
             <div class="card-body">
                 <form id="formFilterAgenda">
                     <div class="card shadow-sm border-0">
@@ -25,19 +18,16 @@
                                     <label class="form-label fw-semibold">Tanggal Awal</label>
                                     <input type="date" name="tgl_awal" id="tgl_awal" class="form-control">
                                 </div>
-
                                 <!-- Tanggal Akhir -->
                                 <div class="col-xl-2 col-lg-6 col-md-6">
                                     <label class="form-label fw-semibold">Tanggal Akhir</label>
                                     <input type="date" name="tgl_akhir" id="tgl_akhir" class="form-control">
                                 </div>
-
                                 <!-- Tanggal Surat -->
                                 <div class="col-xl-2 col-lg-6 col-md-6">
                                     <label class="form-label fw-semibold">Tanggal Surat</label>
                                     <input type="date" name="tgl_surat" id="tgl_surat" class="form-control">
                                 </div>
-
                                 <!-- Sifat Surat -->
                                 <div class="col-xl-2 col-lg-6 col-md-6">
                                     <label class="form-label fw-semibold">Sifat Surat</label>
@@ -50,7 +40,19 @@
                                         @endforeach
                                     </select>
                                 </div>
+                                <!-- instansi -->
+                                <div class="col-xl-4 col-lg-6 col-md-6">
+                                    <label class="form-label fw-semibold">Instansi</label>
+                                    <select name="instansi_id" id="instansi_id" class="form-select">
+                                        <option value="">Semua Instansi</option>
 
+                                        @foreach ($instansiview as $item)
+                                            <option value="{{ $item->id }}">
+                                                {{ $item->nama_instansi }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
                                 <!-- Tombol -->
                                 <div class="col-xl-3 col-lg-6 col-md-6">
                                     <div class="d-grid gap-2 d-md-flex">
@@ -68,6 +70,7 @@
                                         </button>
                                     </div>
                                 </div>
+
                             </div>
                         </div>
                     </div>
@@ -76,14 +79,21 @@
                 <div class="alert alert-light border mb-4">
                     <div class="row">
                         <div class="col-md-4">
-                            <strong>Periode :</strong><br>
+                            <strong>Periode</strong><br>
                             <span id="periode">-</span>
                         </div>
+
                         <div class="col-md-3">
-                            <strong>Sifat Surat :</strong><br>
+                            <strong>Sifat Surat</strong><br>
                             <span id="info_sifat">Semua</span>
                         </div>
-                        <div class="col-md-2 text-md-end">
+
+                        <div class="col-md-3">
+                            <strong>Instansi</strong><br>
+                            <span id="info_instansi">Semua</span>
+                        </div>
+
+                        <div class="col-md-2 text-end">
                             <strong>Jumlah Surat</strong><br>
                             <span class="badge bg-primary fs-6" id="jumlah_surat">
                                 0 Surat
@@ -103,6 +113,7 @@
                                 <th width="18%">Sifat Surat</th>
                                 <th width="20%">Pengirim</th>
                                 <th>Perihal</th>
+                                <th width="8%" class="text-center">File</th>
                             </tr>
                         </thead>
                     </table>
@@ -128,6 +139,7 @@
                         d.tgl_akhir = $('#tgl_akhir').val();
                         d.sifat_surat = $('#sifat_surat').val();
                         d.tgl_surat = $('#tgl_surat').val();
+                        d.instansi_id = $('#instansi_id').val();
                     }
                 },
 
@@ -158,7 +170,15 @@
                     },
                     {
                         data: 'perihal'
+                    },
+                    {
+                        data: 'lihatsurat',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center',
+                        width: '8%'
                     }
+
                 ],
 
                 language: {
@@ -186,6 +206,7 @@
                 table.ajax.reload();
                 $('#periode').html('-');
                 $('#info_sifat').html('Semua');
+                $('#info_instansi').html('Semua');
                 $('#jumlah_surat').html('0 Surat');
             });
 
@@ -208,6 +229,14 @@
 
                 $('#info_sifat').html(sifat);
 
+                let instansi = $('#instansi_id option:selected').text();
+
+                if ($('#instansi_id').val() == '') {
+                    instansi = 'Semua';
+                }
+
+                $('#info_instansi').html(instansi);
+
             }
 
             // update jumlah surat
@@ -218,6 +247,18 @@
                 }
             });
 
+        });
+    </script>
+
+    <script>
+        $(document).on('click', '.btn-preview-surat', function() {
+            let file = $(this).data('file');
+            $('#previewSurat').attr('src', file);
+
+        });
+
+        $('#modalPreviewSurat').on('hidden.bs.modal', function() {
+            $('#previewSurat').attr('src', '');
         });
     </script>
 @endpush

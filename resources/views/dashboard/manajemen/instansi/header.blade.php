@@ -1,6 +1,6 @@
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
-        <h3 class="fw-bold mb-1">Data User</h3>
+        <h3 class="fw-bold mb-1">Instansi</h3>
 
     </div>
 
@@ -14,7 +14,7 @@
             <i class="icon-arrow-right"></i>
         </li>
         <li class="nav-item">
-            <a href="#">Data User</a>
+            <a href="#">Instansi</a>
         </li>
     </ul>
 </div>
